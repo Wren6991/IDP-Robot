@@ -10,7 +10,7 @@ LIBS_ARM = -lrobot
 
 
 EXECUTABLE=robot
-SOURCES = main.cpp navigation.cpp robot_state.cpp line_following.cpp sensors_actuators.cpp
+SOURCES = main.cpp navigation.cpp robot_state.cpp line_following.cpp sensors_actuators.cpp endpoint_tasks.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
 .DEFAULT_GOAL = all
