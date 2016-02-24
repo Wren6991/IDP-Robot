@@ -7,7 +7,7 @@
 
 const float root2 = 1.414;
 
-edge::edge(vertex *a_, vertex *b_, float length)
+edge::edge(vertex *a_, vertex *b_, float length, float dir_ax_, float dir_ay_, float dir_bx_, float dir_by_)
 {
 	if (a_ == NULL || b_ == NULL)
 		return;	// should throw
@@ -19,6 +19,30 @@ edge::edge(vertex *a_, vertex *b_, float length)
 	// (must be specified if path not straight)
 	if (length < 0)
 		length = sqrtf(powf(b->posx - a->posx, 2) + powf(b->posy - a->posy, 2));
+
+	// default direction: assume edge is straight line, use vector a->b
+	// otherwise use supplied values
+	if (dir_ax_ == 0 && dir_ay_ == 0)
+	{
+		dir_ax = a->posx - b->posx;
+		dir_ay = a->posy - b->posy;
+	}
+	else
+	{
+		dir_ax = dir_ax_;
+		dir_ay = dir_ay_;
+	}
+
+	if (dir_bx_ == 0 && dir_bx_ == 0)
+	{
+		dir_bx = b->posx - a->posx;
+		dir_by = b->posy - a->posy;
+	}
+	else
+	{
+		dir_bx = dir_bx_;
+		dir_by = dir_by_;
+	}
 }
 
 world_map::world_map()
@@ -42,13 +66,13 @@ world_map::world_map()
 	vs.push_back(new vertex(900, 0));
 	vs.push_back(new vertex(1800, 0));
 
-	es.push_back(new edge(vs[0], vs[1]));
-	es.push_back(new edge(vs[0], vs[3]));
+	es.push_back(new edge(vs[0], vs[1], M_PI / 4.f * 600 + 300, -1, -1, 1, 0));
+	es.push_back(new edge(vs[0], vs[3], M_PI / 4.f * 600, 1, 1, 0, -1));
 	es.push_back(new edge(vs[0], vs[4]));
-	es.push_back(new edge(vs[1], vs[2]));
+	es.push_back(new edge(vs[1], vs[2], M_PI / 4.f * 600 + 300, -1, 0, 1, -1));
 	es.push_back(new edge(vs[1], vs[5]));
 	es.push_back(new edge(vs[2], vs[6]));
-	es.push_back(new edge(vs[2], vs[7]));
+	es.push_back(new edge(vs[2], vs[7], M_PI / 4.f * 600, -1, 1, 0, -1));
 	es.push_back(new edge(vs[3], vs[4]));
 	es.push_back(new edge(vs[3], vs[13]));
 	es.push_back(new edge(vs[4], vs[5]));
@@ -155,4 +179,19 @@ std::vector<edge*> world_map::find_path(vertex *start, vertex *end)
 
 	std::cout << "Pathfinding failed!\n";
 	return std::vector<edge*>(); // Failed!
+}
+
+float angle_between(float ax, float ay, float bx, float by)
+{
+	float dot = ax * bx + ay * by;
+	float cross = ay * bx - ax * by;
+	return atan2(cross, dot) * 180.f / M_PI;
+}
+
+float world_map::turning_angle(edge *leaving, edge *entering, vertex *currently_at)
+{
+	return angle_between(leaving->dirx(currently_at),
+						leaving->diry(currently_at),
+						-entering->dirx(currently_at),
+						-entering->diry(currently_at));
 }

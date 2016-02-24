@@ -31,9 +31,14 @@ struct vertex {
 struct edge {
 	vertex *a, *b;
 	float length;
+	// the direction of the edge (towards vertex) at a, b
+	// so that we know what angle to turn through at junctions
+	float dir_ax, dir_ay, dir_bx, dir_by;
 	// call as v->edge->other(v) to explore neighbours of v
 	vertex* other(vertex *v) {return v == a ? b : a;}
-	edge(vertex *a_, vertex *b_, float length = -1.f);
+	float dirx(vertex *v) {return v == a ? dir_ax : dir_bx;}
+	float diry(vertex *v) {return v == a ? dir_ay : dir_by;}
+	edge(vertex *a_, vertex *b_, float length = -1.f, float dir_ax_ = 0, float dir_ay_ = 0, float dir_bx_ = 0, float dir_by_ = 0);
 };
 
 struct world_map {
@@ -43,6 +48,9 @@ struct world_map {
 
 	std::vector<edge*> reconstruct_path(vertex *start, vertex *end);
 	std::vector<edge*> find_path(vertex *start, vertex *end);
+	// Returns angle in degrees to be turned at the junction (currently_at)
+	// between two vertices.
+	float turning_angle(edge *leaving, edge *entering, vertex *currently_at);
 
 	world_map();
 	world_map(std::vector<vertex*> vs_, std::vector<edge*> es_) {vs = vs_; es = es_;}

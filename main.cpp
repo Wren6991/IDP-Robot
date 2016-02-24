@@ -17,8 +17,8 @@ int main(int argc, char **argv)
 	robot_state state;
 	robot_link *link = state.link;
 
-	vertex *start = state.map->vs[VERT_START];
-	vertex *end = state.map->vs[VERT_FRYING_PAN];
+	vertex *start = state.map->vs[VERT_EGG_0];
+	vertex *end = state.map->vs[VERT_EGG_BOX];
 	std::vector<edge*> edges = state.map->find_path(start, end);
 
 	vertex *current = start;
@@ -28,9 +28,11 @@ int main(int argc, char **argv)
 			break;
 		std::cout << "(" << current->posx << ", " << current->posy << "),\n";
 		current = edges[i]->other(current);
+
+		if (current != end)
+			std::cout << "Turn by " << state.map->turning_angle(edges[i], edges[i + 1], current) << "*\n";
 	}
 	std::cout << "(" << current->posx << ", " << current->posy << ")\n";
-
 
 	if (!link->initialise(ROBOT_NUM))
 	{
