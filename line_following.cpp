@@ -33,24 +33,44 @@ line_state_t line_state_from_sensors(robot_state &state)
 
 void follow_line(robot_state &state)
 {
-	line_state_t line_state = line_state_from_sensors(state);
-	state.line_state = line_state;
+	state.line_state = line_state_from_sensors(state);
 
-	if (line_state == LINE_JUNCTION)
+	if (state.line_state == LINE_JUNCTION)
 	{
-		/*if (state.current == state.target)
+		// Don't do anything if we're already at the target
+		if (state.current == state.target)
 			return;
+		// Advance our state along the edge to next vert on route
 		edge *e = state.current_path[0];
 		state.current = e->other(state.current);
-		// perform turn
-		// update current node in state*/
-		move(state, 0, 0);
-	}	
-	else if (line_state == LINE_NONE_DETECTED)
+		state.current_dirx = e->dirx(state.current);
+		state.current_diry = e->diry(state.current);
+		// Stop if now at target
+		if (state.current == state.target)
+		{
+			move(state, 0, 0);
+			return;
+		}
+		// Find turning angle to next edge, turn onto it
+		turn_to_line(state, state.map->turning_angle(
+			state.current_path[0],
+			state.current_path[1],
+			state.current));
+		// Pop the edge we just traversed off the front of the path
+		// SHOULD NOT USE VECTOR, better a deque
+		state.current_path.erase(state.current_path[0]);
+	}
+	else if (state.line_state == LINE_NONE_DETECTED)
 	{
 		// turn away from line
 		// reverse until line at centre
 		// resume normal following
+		move(state, -1, 0);
+		while (state.line_state == LINE_NONE_DETECTED)
+		{
+			read_sensors(state);
+			state.line_state = line_state_from_sensors(state);
+		}
 		move(state, 0, 0);
 	}
 	else
