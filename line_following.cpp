@@ -38,12 +38,12 @@ void follow_line(robot_state &state)
 
 	if (line_state == LINE_JUNCTION)
 	{
-		if (state.current == state.target)
+		/*if (state.current == state.target)
 			return;
 		edge *e = state.current_path[0];
 		state.current = e->other(state.current);
 		// perform turn
-		// update current node in state
+		// update current node in state*/
 		move(state, 0, 0);
 	}	
 	else if (line_state == LINE_NONE_DETECTED)
@@ -70,3 +70,45 @@ void follow_edge(robot_state &state, int sensor_no)
 	else
 		move(state, 0.5, 0.5);
 }
+
+void turn_to_line(robot_state &state, float degrees_approx)
+{
+	if (fabs(degrees_approx) < 5.f)	// the junction is straight, ascribe to numerical error
+	{
+		move(state, 1, 0);
+		while (state.line_state == LINE_JUNCTION)
+		{
+			read_sensors(state);
+			state.line_state = line_state_from_sensors(state);
+		}
+	}
+	else
+	{
+		turn = degrees_approx < 0 ? -1 : 1;
+		// Turn in desired direction until we are off the line
+		move(state, 0, turn);
+		while (state.line_state != LINE_NO_LINE)
+		{
+			read_sensors(state);
+			state.line_state = line_state_from_sensors(state);
+		}
+		// We've turned off the line -- now just a bit extra:
+		delay(50);
+		// Go forward until we hit the new line. The line following routine will realign us.
+		move(state, 1, 0);
+		while (state.line_state == LINE_NO_LINE)
+		{
+			read_sensors(state);
+			state.line_state = line_state_from_sensors(state);
+		}
+	}
+}
+			
+
+
+
+
+
+
+
+
