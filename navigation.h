@@ -51,6 +51,7 @@ struct world_map {
 	// Returns angle in degrees to be turned at the junction (currently_at)
 	// between two vertices.
 	float turning_angle(edge *leaving, edge *entering, vertex *currently_at);
+	float turning_angle(float dirx, float diry, edge *entering, vertex *currently_at);
 
 	world_map();
 	world_map(std::vector<vertex*> vs_, std::vector<edge*> es_) {vs = vs_; es = es_;}

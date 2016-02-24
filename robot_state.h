@@ -6,6 +6,7 @@
 #include "line_following.h"
 
 struct vertex;
+struct edge;
 struct world_map;
 
 struct robot_state {
@@ -26,7 +27,9 @@ struct robot_state {
 	int eggs_processed;
 
 	bool at_junction;
+	float current_dirx, current_diry;
 	vertex *current, *target;
+	std::vector<edge*> current_path;
 	line_state_t line_state;
 	world_map *map;
 

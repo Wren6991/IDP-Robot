@@ -6,6 +6,7 @@
 robot_state::robot_state()
 {
 	std::memset(this, 0, sizeof(*this));
+	current_dirx = 1.f;
 	link = new robot_link;
 	map = new world_map;
 }

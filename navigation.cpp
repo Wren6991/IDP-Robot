@@ -195,3 +195,15 @@ float world_map::turning_angle(edge *leaving, edge *entering, vertex *currently_
 						-entering->dirx(currently_at),
 						-entering->diry(currently_at));
 }
+
+float turning_angle(float dirx, float diry, edge *entering, vertex *currently_at)
+{
+	return angle_between(
+			dirx,
+			diry,
+			-entering->dirx(currently_at),
+			-entering->diry(currently_at));
+}
+
+
+

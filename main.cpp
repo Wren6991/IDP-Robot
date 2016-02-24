@@ -10,7 +10,11 @@
 
 #include <cmath>
 
-#define ROBOT_NUM 50
+#ifdef __arm__
+	#define ROBOT_NUM "127.0.0.1"
+#else
+	#define ROBOT_NUM 50
+#endif
 
 int main(int argc, char **argv)
 {
@@ -60,7 +64,7 @@ int main(int argc, char **argv)
 	delay(1000);
 	while (true)
 	{
-		state.have_egg = true;
+		/*state.have_egg = true;
 		state.have_white = true;
 		state.have_chick = false;
 		update_status_leds(state);
@@ -77,7 +81,9 @@ int main(int argc, char **argv)
 		widen_claw(state);
 		set_led(state, LED_LDR, false);
 		std::cout << "2\n";
-		delay(250);
+		delay(250);*/
+		read_ldr(state);
+		std::cout << "Light level: " << state.light_sensor << "\n";
 	}
 
 	while (true)

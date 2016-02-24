@@ -38,7 +38,10 @@ void follow_line(robot_state &state)
 
 	if (line_state == LINE_JUNCTION)
 	{
-		// get turn from navigation data
+		if (state.current == state.target)
+			return;
+		edge *e = state.current_path[0];
+		state.current = e->other(state.current);
 		// perform turn
 		// update current node in state
 		move(state, 0, 0);
