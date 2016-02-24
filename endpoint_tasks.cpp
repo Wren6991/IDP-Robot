@@ -3,36 +3,37 @@
 #include "line_following.h"
 #include "robot_state.h"
 #include "sensors_actuators.h"
+#include "navigation.h"
 
 void set_next_target(robot_state &state)
 {
 	if (state.have_egg)
 	{
 		if (state.have_chick)
-			state.target = VERT_CHICK_BOX;
-		else if (state.have_egg_white)
-			state.target = VERT_FRYING_PAN;
+			state.target = state.map->vs[VERT_CHICK_BOX];
+		else if (state.have_white)
+			state.target = state.map->vs[VERT_FRYING_PAN];
 		else
-			state.target = VERT_EGG_BOX;
+			state.target = state.map->vs[VERT_EGG_BOX];
 	}
 	else
 	{
 		switch(state.eggs_processed)
 		{
 		case 0:
-			state.target = VERT_EGG_0;
+			state.target = state.map->vs[VERT_EGG_0];
 			break;
 		case 1:
-			state.target = VERT_EGG_1;
+			state.target = state.map->vs[VERT_EGG_1];
 			break;
 		case 2:
-			state.target = VERT_EGG_2;
+			state.target = state.map->vs[VERT_EGG_2];
 			break;
 		case 3:
-			state.target = VERT_EGG_3;
+			state.target = state.map->vs[VERT_EGG_3];
 			break;
 		case 4:
-			state.target = VERT_EGG_4;
+			state.target = state.map->vs[VERT_EGG_4];
 			break;
 		default:
 			// We're finished!
@@ -60,7 +61,7 @@ void egg_task(robot_state &state)
 
 	// Split claw (dropping contents into bucket)
 	// Use LDR to identify contents.
-	// set have_chick or have_egg_white accordingly
+	// set have_chick or have_white accordingly
 
 	// realign to track
 	// (may possibly have to set current vertex to egg_n+1 due to turning during realignment)
@@ -99,7 +100,7 @@ void frying_pan_task(robot_state &state)
 	// flap the flapper
 
 	// realign to track
-	// have_egg_white = false
+	// have_white = false
 	// set_next_target();
 }
 
