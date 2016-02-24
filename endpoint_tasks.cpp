@@ -45,11 +45,18 @@ void set_next_target(robot_state &state)
 void egg_task(robot_state &state)
 {
 	// Align with podium
+		// due to length of robot, need to use the "other" end of the line
+		// turn west, follow this line until no line detected. Keep going a bit further.
+		// turn 180* until line detected again. Follow line back up to egg junction
+		// Go through junction, and now use edge following to slowly approach the podium
+		// (edge following has less slack than line following)
+		// Edge follow until one whisker hits the wall, then drive the opposite motor until both
+		// whiskers are on wall
 
 	// Close claw, back away
 	// have_egg = true
 
-	// if claw can't close, egg is fake. can skip to realignment.
+	// if claw can't close, egg is fake. can skip to realignment step.
 
 	// Split claw (dropping contents into bucket)
 	// Use LDR to identify contents.
@@ -63,7 +70,7 @@ void egg_task(robot_state &state)
 
 void egg_box_task(robot_state &state)
 {
-	// align to box
+	// align to box  (90* turn_to_line, drive forward until whiskers detect box)
 
 	// ensure ramp/flapper is extended
 	// unsplit claw
