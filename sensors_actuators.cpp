@@ -24,6 +24,7 @@ void init_sensors(robot_state &state)
 		SWITCH_CLAW_CLOSED |
 		SWITCH_BUMP_LEFT |
 		SWITCH_BUMP_RIGHT);
+	state.link->command(RAMP_TIME, 1);
 }
 
 void update_sensor_values(robot_state &state)

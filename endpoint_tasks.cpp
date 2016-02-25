@@ -5,6 +5,18 @@
 #include "sensors_actuators.h"
 #include "navigation.h"
 
+#include <cstdlib>
+
+
+void start_box_task(robot_state &state)
+{
+	if (state.eggs_processed > 0)
+	{
+		move(state, 0, 0);
+		exit(0);
+	}
+}
+
 void set_next_target(robot_state &state)
 {
 	if (state.have_egg)
@@ -33,11 +45,13 @@ void set_next_target(robot_state &state)
 			state.target = state.map->vs[VERT_EGG_3];
 			break;
 		case 4:
+			// if time_left < 20 go to start box
+			// else
 			state.target = state.map->vs[VERT_EGG_4];
 			break;
 		default:
 			// We're finished!
-			state.target = state.current;
+			state.target = state.map->vs[VERT_START];
 			break;
 		}
 	}

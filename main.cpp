@@ -30,28 +30,38 @@ int main(int argc, char **argv)
 	}
 
 	std::cout << "Connected\n";
-	
-	/*for (int speed = -1; speed <= 1; ++speed)
-	{
-		for (int turn = -1; turn <= 1; ++turn)
-		{
-			move(state, speed, turn);
-			delay(2000);
-			move(state, 0, 0);
-			delay(500);
-		}
-	}*/
+
+	init_sensors(state);
 
 	move(state, 0, 0);
 
+	state.current = state.map->vs[VERT_START];
+	state.target = state.map->vs[VERT_FRYING_PAN];
+	state.current_path = state.map->find_path(state.current, state.target);
 
+	vertex *current = state.current;
+	for (size_t i = 0; i < state.current_path.size(); ++i)
+	{
+		if (!current)
+			break;
+		std::cout << "(" << current->posx << ", " << current->posy << "),\n";
+		current = state.current_path[i]->other(current);
+
+		if (current != state.target)
+			std::cout << "Turn by " << state.map->turning_angle(state.current_path[i], state.current_path[i + 1], current) << "* at ";
+	}
+	std::cout << "(" << current->posx << ", " << current->posy << ")\n";
+
+	float lasttime = 0;
 	while (true)
 	{
 		update_sensor_values(state);
 		follow_line(state);
-		if (rand() / (float)RAND_MAX < 0.1f)
-			debug_dump(state);
-		delay(10);
+		/*float time = state.watch.read();
+		std::cout << time - lasttime << "\n";
+		lasttime = time;*/
+		/*if (rand() / (float)RAND_MAX < 0.05f)
+			debug_dump(state);*/
 	}
 
 	/*vertex *current, *target;

@@ -17,6 +17,7 @@ typedef enum {
 
 line_state_t line_state_from_sensors(robot_state &state);
 void follow_line(robot_state &state);
+void follow_edge(robot_state &state, int sensor_no, bool flip);
 // Dead reckoning plus using the new line for the final alignment:
 void turn_to_line(robot_state &state, float degrees_approx);
 

@@ -9,6 +9,7 @@ robot_state::robot_state()
 	current_dirx = 1.f;
 	link = new robot_link;
 	map = new world_map;
+	watch.start();
 }
 
 robot_state::~robot_state()

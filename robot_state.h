@@ -2,6 +2,7 @@
 #define _ROBOT_STATE_H_
 
 #include <robot_link.h>
+#include <stopwatch.h>
 #include <queue>
 #include "line_following.h"
 
@@ -25,6 +26,7 @@ struct robot_state {
 	bool have_chick;
 	bool have_white;
 	int eggs_processed;
+	stopwatch watch;
 
 	bool at_junction;
 	float current_dirx, current_diry;
