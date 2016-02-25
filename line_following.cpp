@@ -69,6 +69,7 @@ void follow_line(robot_state &state)
 			move(state, 0, 0);
 			return;
 		}
+		std::cout << "Currently facing: " << state.current_dirx << ", " << state.current_diry << "\n";
 		// Find turning angle to next edge, turn onto it
 		turn_to_line(state, state.map->turning_angle(
 			state.current_path[0],

@@ -33,7 +33,7 @@ edge::edge(vertex *a_, vertex *b_, float length, float dir_ax_, float dir_ay_, f
 		dir_ay = dir_ay_;
 	}
 
-	if (dir_bx_ == 0 && dir_bx_ == 0)
+	if (dir_bx_ == 0 && dir_by_ == 0)
 	{
 		dir_bx = b->posx - a->posx;
 		dir_by = b->posy - a->posy;
