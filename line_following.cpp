@@ -39,7 +39,7 @@ line_state_t line_state_from_sensors(robot_state &state)
 
 void follow_line(robot_state &state)
 {
-	state.line_state = line_state_from_sensors(state);
+	state.at_junction = state.line_state == LINE_JUNCTION;
 	static float integral = 0.f;
 	static float lasttime = 0.f;
 
@@ -56,20 +56,19 @@ void follow_line(robot_state &state)
 			move(state, 0, 0);
 			return;
 		}		
-		std::cout << "Arrived at junction\n";
 		// Advance our state along the edge to next vertex on route
 		// And store the new direction for entering this vertex
 		edge *e = state.current_path[0];
 		state.current = e->other(state.current);
 		state.current_dirx = e->dirx(state.current);
 		state.current_diry = e->diry(state.current);
+		std::cout << "Arrived at junction (" << state.current->posx << ", " << state.current->posy << ")\n";
 		// Stop if now at target
 		if (state.current == state.target)
 		{
 			move(state, 0, 0);
 			return;
 		}
-		std::cout << "Currently facing: " << state.current_dirx << ", " << state.current_diry << "\n";
 		// Find turning angle to next edge, turn onto it
 		turn_to_line(state, state.map->turning_angle(
 			state.current_path[0],
@@ -97,8 +96,8 @@ void follow_line(robot_state &state)
 	else
 	{
 		// we have a line state from -3 to 3, from completely left to completely right
-		integral += state.line_state * dt;
-		move(state, 1, -(state.line_state + integral)/3.0001f);	// full speed ahead!
+		integral += state.line_state * dt * 0.5f;
+		move(state, 1, -1.f * (state.line_state + integral)/3.0001f);	// full speed ahead!
 	}
 }
 
@@ -119,30 +118,23 @@ void turn_to_line(robot_state &state, float degrees_approx)
 	{
 		move(state, 1, 0);
 		while (state.line_state == LINE_JUNCTION)
-		{
 			update_sensor_values(state);
-			state.line_state = line_state_from_sensors(state);
-		}
+		delay(50);	// Just to make sure we're past the junction
 	}
 	else
 	{
 		float turn = degrees_approx < 0 ? 1 : -1;
 		// Turn in desired direction until we are off the line
-		move(state, -0.3, turn);
+		move(state, -0.2, turn);
 		while (state.line_state != LINE_NONE_DETECTED)
-		{
 			update_sensor_values(state);
-			state.line_state = line_state_from_sensors(state);
-		}
 		// We've turned off the line -- now just a bit extra:
-		delay(250);
+		//delay(100);
 		// Go forward until we hit the new line.
-		move(state, 1, turn/2.f);
+		move(state, 1, 0);
 		while (state.line_state == LINE_NONE_DETECTED)
-		{
 			update_sensor_values(state);
-			state.line_state = line_state_from_sensors(state);
-		}
+
 		std::cout << "line acquired, using edge following to align...\n";
 		// Now use edge following to acquire line
 		while (state.line_state != LINE_STRAIGHT)
@@ -152,7 +144,6 @@ void turn_to_line(robot_state &state, float degrees_approx)
 			else
 				follow_edge(state, 0, true);
 			update_sensor_values(state);
-			state.line_state = line_state_from_sensors(state);
 		}
 		std::cout << "Realigned to line, resuming normal following\n";
 	}

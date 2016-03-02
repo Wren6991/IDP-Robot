@@ -7,7 +7,7 @@
 #include <robot_link.h>
 
 #include "robot_state.h"
-
+#include "line_following.h"
 // Sensor control code
 
 void init_sensors(robot_state &state)
@@ -24,7 +24,7 @@ void init_sensors(robot_state &state)
 		SWITCH_CLAW_CLOSED |
 		SWITCH_BUMP_LEFT |
 		SWITCH_BUMP_RIGHT);
-	state.link->command(RAMP_TIME, 1);
+	state.link->command(RAMP_TIME, 0);
 }
 
 void update_sensor_values(robot_state &state)
@@ -44,6 +44,8 @@ void update_sensor_values(robot_state &state)
 	state.claw_closed = !(switch_bits & SWITCH_CLAW_CLOSED);
 	state.bump_left = !(switch_bits & SWITCH_BUMP_LEFT);
 	state.bump_right = !(switch_bits & SWITCH_BUMP_RIGHT);
+
+	state.line_state = line_state_from_sensors(state);
 }
 
 void read_ldr(robot_state &state)
@@ -127,7 +129,7 @@ void move(robot_state &state, float speed, float turning_ratio)
 	float left = clipf(speed + turning_ratio, -1, 1);
 	float right = clipf(speed - turning_ratio, -1, 1);
 	state.link->command(MOTOR_LEFT_GO, float2signmag(left));
-	state.link->command(MOTOR_RIGHT_GO, float2signmag(right));
+	state.link->command(MOTOR_RIGHT_GO, float2signmag(-right));
 } 
 
 

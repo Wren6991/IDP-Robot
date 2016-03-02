@@ -7,7 +7,7 @@
 
 const float root2 = 1.414;
 
-edge::edge(vertex *a_, vertex *b_, float length, float dir_ax_, float dir_ay_, float dir_bx_, float dir_by_)
+edge::edge(vertex *a_, vertex *b_, float length_, float dir_ax_, float dir_ay_, float dir_bx_, float dir_by_)
 {
 	if (a_ == NULL || b_ == NULL)
 		return;	// should throw
@@ -17,9 +17,10 @@ edge::edge(vertex *a_, vertex *b_, float length, float dir_ax_, float dir_ay_, f
 	b->edges.push_back(this);
 	// calculate length if no length specified:
 	// (must be specified if path not straight)
-	if (length < 0)
+	if (length_ < 0)
 		length = sqrtf(powf(b->posx - a->posx, 2) + powf(b->posy - a->posy, 2));
-
+	else
+		length = length_;
 	// default direction: assume edge is straight line, use vector a->b
 	// otherwise use supplied values
 	if (dir_ax_ == 0 && dir_ay_ == 0)
@@ -43,6 +44,8 @@ edge::edge(vertex *a_, vertex *b_, float length, float dir_ax_, float dir_ay_, f
 		dir_bx = dir_bx_;
 		dir_by = dir_by_;
 	}
+
+	std::cout << "edge created with length " << this->length << "\n";
 }
 
 world_map::world_map()
@@ -80,7 +83,7 @@ world_map::world_map()
 	es.push_back(new edge(vs[5], vs[8]));
 	es.push_back(new edge(vs[6], vs[7]));
 	es.push_back(new edge(vs[7], vs[9]));
-	es.push_back(new edge(vs[8], vs[9]));
+	//es.push_back(new edge(vs[8], vs[9]));
 	es.push_back(new edge(vs[8], vs[16]));
 	es.push_back(new edge(vs[9], vs[10]));
 	es.push_back(new edge(vs[10], vs[11]));
@@ -134,10 +137,13 @@ std::vector<edge*> world_map::find_path(vertex *start, vertex *end)
 		vs[i]->g_score = LARGE_VALUE;
 		vs[i]->f_score = LARGE_VALUE;
 	}
+	start->g_score = 0;
+	start->f_score = heuristic_distance(start, end);
 
 	while (open_set.size() > 0)
 	{
 		vertex *current = *std::min_element(open_set.begin(), open_set.end(), f_lessthan());	// lowest f_scored node
+		std::cout << "Selected vertex with f score " << current->f_score << "\n";
 		if (current == end) {
 			std::cout << "Reached end vertex\n";
 			return reconstruct_path(start, end);
@@ -147,9 +153,9 @@ std::vector<edge*> world_map::find_path(vertex *start, vertex *end)
 		std::cout << current->edges.size() << " neighbours.\n";
 		for (size_t i = 0; i < current->edges.size(); ++i)
 		{
-			std::cout << "Considering vertex\n";
 			edge *e = current->edges[i];
 			vertex *neighbour = e->other(current);
+			std::cout << "Considering vertex at (" << neighbour->posx << ", " << neighbour->posy << ")\n";
 			if (closed_set.find(neighbour) != closed_set.end())
 			{
 				// if we've already fully determined this node, skip
@@ -157,6 +163,7 @@ std::vector<edge*> world_map::find_path(vertex *start, vertex *end)
 				continue;
 			}
 			float tentative_g_score = current->g_score + e->length;
+			std::cout << "l: " << e->length << "\n";
 			if (open_set.find(neighbour) == open_set.end())
 			{
 				std::cout << "Adding to open set\n";
@@ -174,6 +181,8 @@ std::vector<edge*> world_map::find_path(vertex *start, vertex *end)
 			neighbour->came_from = e;
 			neighbour->g_score = tentative_g_score;
 			neighbour->f_score = tentative_g_score + heuristic_distance(neighbour, end);
+			std::cout << "Set g score to " << neighbour->g_score << "\n";
+			std::cout << "Set f score to " << neighbour->f_score << "\n";
 		}
 	}
 
@@ -181,7 +190,7 @@ std::vector<edge*> world_map::find_path(vertex *start, vertex *end)
 	return std::vector<edge*>(); // Failed!
 }
 
-float angle_between(float ax, float ay, float bx, float by)
+float world_map::angle_between(float ax, float ay, float bx, float by)
 {
 	float dot = ax * bx + ay * by;
 	float cross = ay * bx - ax * by;
@@ -196,7 +205,7 @@ float world_map::turning_angle(edge *leaving, edge *entering, vertex *currently_
 						-entering->diry(currently_at));
 }
 
-float turning_angle(float dirx, float diry, edge *entering, vertex *currently_at)
+float world_map::turning_angle(float dirx, float diry, edge *entering, vertex *currently_at)
 {
 	return angle_between(
 			dirx,

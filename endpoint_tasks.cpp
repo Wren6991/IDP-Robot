@@ -6,7 +6,8 @@
 #include "navigation.h"
 
 #include <cstdlib>
-
+#include <iostream>
+#include <robot_delay.h>
 
 void start_box_task(robot_state &state)
 {
@@ -57,6 +58,13 @@ void set_next_target(robot_state &state)
 	}
 }
 
+void wait_for_crossing(robot_state &state)
+{
+	while (state.line_state != LINE_NONE_DETECTED)
+		update_sensor_values(state);
+	while (state.line_state < -2 || state.line_state > 2)
+		update_sensor_values(state);
+}
 void egg_task(robot_state &state)
 {
 	// Align with podium
@@ -67,20 +75,65 @@ void egg_task(robot_state &state)
 		// (edge following has less slack than line following)
 		// Edge follow until one whisker hits the wall, then drive the opposite motor until both
 		// whiskers are on wall
+	std::cout << "Turning to west\n";
+	move(state, -0.6, -1);
+	delay(100);
+	move(state, 0.8, -1);
+	wait_for_crossing(state);
+
+	move(state, 0.55, 1);
+	std::cout << "Turning south\n";
+	wait_for_crossing(state);
+	std::cout << "Turning east\n";
+	move(state, 1, 0.5);
+	wait_for_crossing(state);
+
+	move(state, 0, 0);
+	std::cout << "Alignment reached.\n";
+
+	while (!(state.bump_left || state.bump_right))
+	{
+		update_sensor_values(state);
+		follow_line(state);
+	}
+
+	move(state, 0, 0);
 
 	// Close claw, back away
 	// have_egg = true
 
-	// if claw can't close, egg is fake. can skip to realignment step.
+	close_claw(state);
+	delay(500);
+	move(state, -1, 0);
+	delay(500);
+	move(state, 0, 0);
+	state.have_egg = true;
+	update_status_leds(state);
 
+	// if claw can't close, egg is fake. can skip to realignment step.
+	if (state.claw_closed)
+	{	
 	// Split claw (dropping contents into bucket)
 	// Use LDR to identify contents.
 	// set have_chick or have_white accordingly
+		widen_claw(state);
+		delay(1000);
+		read_ldr(state);
+		if (state.light_sensor > 0.2f)
+			state.have_white = true;
+		else
+			state.have_chick = true;
+		update_status_leds(state);
+		narrow_claw(state);
+	}
 
+	std::cout << "Egg picked up, realigning to track\n";
 	// realign to track
 	// (may possibly have to set current vertex to egg_n+1 due to turning during realignment)
+	move(state, 0, 1);
+	wait_for_crossing(state);
 
-	// set_next_target();
+	//set_next_target();
 }
 
 void egg_box_task(robot_state &state)

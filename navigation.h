@@ -50,6 +50,7 @@ struct world_map {
 	std::vector<edge*> find_path(vertex *start, vertex *end);
 	// Returns angle in degrees to be turned at the junction (currently_at)
 	// between two vertices.
+	float angle_between(float ax, float ay, float bx, float by);
 	float turning_angle(edge *leaving, edge *entering, vertex *currently_at);
 	float turning_angle(float dirx, float diry, edge *entering, vertex *currently_at);
 
