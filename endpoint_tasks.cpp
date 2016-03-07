@@ -75,24 +75,34 @@ void egg_task(robot_state &state)
 		// (edge following has less slack than line following)
 		// Edge follow until one whisker hits the wall, then drive the opposite motor until both
 		// whiskers are on wall
-	std::cout << "Turning to west\n";
-	move(state, -1, -0.5);
-	delay(600);
-	move(state, 1, -1);
-	wait_for_crossing(state);
 
-	move(state, 1, 0);
-	delay(300);
-	move(state, 0.5, 1);
-	std::cout << "Turning east\n";
-	wait_for_crossing(state);
+	if (state.eggs_processed >= 1 && state.eggs_processed <= 3)
+	{
+		std::cout << "Turning to west\n";
+		move(state, -1, -0.5);
+		delay(600);
+		move(state, 1, -1);
+		wait_for_crossing(state);
 
-	std::cout << "Alignment reached.\n";
+		move(state, 1, 0);
+		delay(300);
+		move(state, 0.5, 1);
+		std::cout << "Turning east\n";
+		wait_for_crossing(state);
+
+		std::cout << "Alignment reached.\n";
+	}
 
 	open_claw(state);
 
-	move(state, 1, 0);
-	delay(2000);
+	state.integral = 0.f;
+	
+	int i = 300;
+	while (i --> 0)
+	{
+		update_sensor_values(state);
+		follow_line_ignore_junctions(state);
+	}
 	/*while (!(state.bump_left || state.bump_right))
 	{
 		update_sensor_values(state);
@@ -123,8 +133,16 @@ void egg_task(robot_state &state)
 			narrow_claw(state);
 			delay(250);
 			widen_claw(state);
-			delay(250);
+			delay(350);
 		}
+		for (int i = 0; i < 3; ++i)
+		{
+			move(state, 0, 1);
+			delay(300);
+			move(state, 0, -1);
+			delay(300);
+		}
+		move(state, 0, 0);
 		read_ldr(state);
 		if (state.light_sensor > 0.2f)
 			state.have_white = true;
@@ -178,10 +196,30 @@ void frying_pan_task(robot_state &state)
 {
 	// align to box
 
+	move(state, -1, 0);
+	delay(1250);
+	move(state, 0, -1);
+	delay(500);
+	move(state, 1, 0);
+	delay(500);
+
 	// flap the flapper
+	flap_flapper(state);
+	unflap_flapper(state);
 
 	// realign to track
-	// have_white = false
-	// set_next_target();
+	move(state, -1, 1);
+	wait_for_crossing(state);
+	state.integral = 0.f;
+
+	while (state.line_state != LINE_JUNCTION)
+	{
+		follow_line_ignore_junctions(state);
+		update_sensor_values(state);
+	}
+
+	state.have_white = false;
+	update_status_leds(state);
+	set_next_target(state);
 }
 

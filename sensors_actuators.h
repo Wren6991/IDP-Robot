@@ -58,8 +58,8 @@ void update_status_leds(robot_state &state);
 void move(robot_state &state, float speed, float turning_ratio);
 
 // punt that shit out:
-void empty_bucket(robot_state &state);
-void open_bucket(robot_state &state);
+void flap_flapper(robot_state &state);
+void unflap_flapper(robot_state &state);
 
 void debug_dump(robot_state &state);
 

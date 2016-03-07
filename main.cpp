@@ -56,8 +56,8 @@ int main(int argc, char **argv)
 	robot_state state;
 	robot_link *link = state.link;
 
-	state.current = state.map->vs[VERT_FRYING_PAN];
-	state.target = state.map->vs[VERT_EGG_3];
+	state.current = state.map->vs[VERT_EGG_2];
+	state.target = state.map->vs[VERT_FRYING_PAN];
 	state.current_path = state.map->find_path(state.current, state.target);
 
 	vertex *current = state.current;
@@ -86,12 +86,6 @@ int main(int argc, char **argv)
 	narrow_claw(state);
 	close_claw(state);
 
-	while (true)
-	{
-		read_ldr(state);
-		std::cout << ((state.light_sensor > 0.16f) ? ("white ") : (" chick ")) << state.light_sensor << "\n";
-		delay(1000);
-	}
 
 	while (true)
 	{
@@ -99,8 +93,8 @@ int main(int argc, char **argv)
 		follow_line(state);
 		if (state.current == state.target)
 		{
-			state.eggs_processed = 1;
-			egg_task(state);
+			state.eggs_processed = 0;
+			frying_pan_task(state);
 			break;
 		}
 	}

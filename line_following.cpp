@@ -37,14 +37,13 @@ line_state_t line_state_from_sensors(robot_state &state)
 	return sensor_to_line[line_bits];
 }
 
-float integral = 0.f;
 void follow_line(robot_state &state)
 {
 	state.at_junction = state.line_state == LINE_JUNCTION;
 
 	if (state.line_state == LINE_JUNCTION)
 	{
-		integral = 0.f;
+		state.integral = 0.f;
 		// Don't do anything if we're already at the target
 		if (state.current == state.target)
 		{
@@ -75,7 +74,7 @@ void follow_line(robot_state &state)
 	}
 	else if (state.line_state == LINE_NONE_DETECTED)
 	{
-		integral = 0.f;
+		state.integral = 0.f;
 		// turn away from line
 		// reverse until line at centre
 		// resume normal following
@@ -105,8 +104,8 @@ void follow_line_ignore_junctions(robot_state &state)
 	if (state.line_state >= -3 && state.line_state <= 3)
 	{
 		// we have a line state from -3 to 3, from completely left to completely right
-		integral += state.line_state * dt * 0.5f;
-		move(state, 1, -1.f * (state.line_state + integral)/3.0001f);	// full speed ahead!
+		state.integral += state.line_state * dt * 0.1f;
+		move(state, 1, -1.f * (state.line_state + state.integral)/3.0001f);	// full speed ahead!
 	}
 	else if (state.line_state == LINE_JUNCTION)
 	{

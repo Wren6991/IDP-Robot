@@ -27,6 +27,7 @@ struct robot_state {
 	bool have_white;
 	int eggs_processed;
 	stopwatch watch;
+	float integral;
 
 	bool at_junction;
 	float current_dirx, current_diry;
