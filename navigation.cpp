@@ -44,8 +44,6 @@ edge::edge(vertex *a_, vertex *b_, float length_, float dir_ax_, float dir_ay_, 
 		dir_bx = dir_bx_;
 		dir_by = dir_by_;
 	}
-
-	std::cout << "edge created with length " << this->length << "\n";
 }
 
 world_map::world_map()
@@ -181,8 +179,6 @@ std::vector<edge*> world_map::find_path(vertex *start, vertex *end)
 			neighbour->came_from = e;
 			neighbour->g_score = tentative_g_score;
 			neighbour->f_score = tentative_g_score + heuristic_distance(neighbour, end);
-			std::cout << "Set g score to " << neighbour->g_score << "\n";
-			std::cout << "Set f score to " << neighbour->f_score << "\n";
 		}
 	}
 

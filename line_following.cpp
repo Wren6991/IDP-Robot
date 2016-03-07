@@ -37,15 +37,10 @@ line_state_t line_state_from_sensors(robot_state &state)
 	return sensor_to_line[line_bits];
 }
 
+float integral = 0.f;
 void follow_line(robot_state &state)
 {
 	state.at_junction = state.line_state == LINE_JUNCTION;
-	static float integral = 0.f;
-	static float lasttime = 0.f;
-
-	float time = state.watch.read();
-	float dt = (time - lasttime) / 1000.f; // We want s not ms!
-	lasttime = time;
 
 	if (state.line_state == LINE_JUNCTION)
 	{
@@ -95,9 +90,31 @@ void follow_line(robot_state &state)
 	}
 	else
 	{
+		follow_line_ignore_junctions(state);
+	}
+}
+
+// e.g. lining up to egg bays
+void follow_line_ignore_junctions(robot_state &state)
+{
+	static float lasttime = 0.f;
+
+	float time = state.watch.read();
+	float dt = (time - lasttime) / 1000.f; // We want s not ms!
+	lasttime = time;
+	if (state.line_state >= -3 && state.line_state <= 3)
+	{
 		// we have a line state from -3 to 3, from completely left to completely right
 		integral += state.line_state * dt * 0.5f;
 		move(state, 1, -1.f * (state.line_state + integral)/3.0001f);	// full speed ahead!
+	}
+	else if (state.line_state == LINE_JUNCTION)
+	{
+		move(state, 1, 0);
+	}
+	else
+	{
+		move(state, 0, 0);
 	}
 }
 
@@ -128,6 +145,7 @@ void turn_to_line(robot_state &state, float degrees_approx)
 		move(state, -0.2, turn);
 		while (state.line_state != LINE_NONE_DETECTED)
 			update_sensor_values(state);
+		std::cout << "Left previous line\n";
 		// We've turned off the line -- now just a bit extra:
 		//delay(100);
 		// Go forward until we hit the new line.

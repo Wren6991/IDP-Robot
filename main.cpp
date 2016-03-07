@@ -19,19 +19,46 @@
 	#define ROBOT_NUM 50
 #endif
 
+void mech_demo(robot_state &state)
+{
+	close_claw(state);
+	delay(1000);
+	widen_claw(state);
+	delay(1000);
+
+	narrow_claw(state);
+	delay(250);
+	widen_claw(state);
+	delay(250);
+	narrow_claw(state);
+	delay(250);
+	widen_claw(state);
+	delay(250);
+	narrow_claw(state);
+	delay(250);
+	widen_claw(state);
+	delay(1000);
+
+
+	state.link->command(MOTOR_PADDLE_GO, 127);
+	delay(1000);
+	state.link->command(MOTOR_PADDLE_GO, 255);
+	delay(1000);
+	state.link->command(MOTOR_PADDLE_GO, 0);		
+	open_claw(state);
+	delay(500);
+	narrow_claw(state);
+	delay(3000);
+}
+
 int main(int argc, char **argv)
 {
 	robot_state state;
 	robot_link *link = state.link;
 
-	state.current = state.map->vs[VERT_EGG_BOX];
-	state.target = state.map->vs[VERT_EGG_2];
+	state.current = state.map->vs[VERT_FRYING_PAN];
+	state.target = state.map->vs[VERT_EGG_3];
 	state.current_path = state.map->find_path(state.current, state.target);
-
-	for (size_t i = 0; i < state.map->es.size(); ++i)
-	{
-		std::cout << state.map->es[i]->length << "\n";
-	}
 
 	vertex *current = state.current;
 	for (size_t i = 0; i < state.current_path.size(); ++i)
@@ -55,6 +82,16 @@ int main(int argc, char **argv)
 	init_sensors(state);
 
 	move(state, 0, 0);
+
+	narrow_claw(state);
+	close_claw(state);
+
+	while (true)
+	{
+		read_ldr(state);
+		std::cout << ((state.light_sensor > 0.16f) ? ("white ") : (" chick ")) << state.light_sensor << "\n";
+		delay(1000);
+	}
 
 	while (true)
 	{

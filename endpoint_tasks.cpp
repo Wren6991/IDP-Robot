@@ -76,32 +76,32 @@ void egg_task(robot_state &state)
 		// Edge follow until one whisker hits the wall, then drive the opposite motor until both
 		// whiskers are on wall
 	std::cout << "Turning to west\n";
-	move(state, -0.6, -1);
-	delay(100);
-	move(state, 0.8, -1);
+	move(state, -1, -0.5);
+	delay(600);
+	move(state, 1, -1);
 	wait_for_crossing(state);
 
-	move(state, 0.55, 1);
-	std::cout << "Turning south\n";
-	wait_for_crossing(state);
+	move(state, 1, 0);
+	delay(300);
+	move(state, 0.5, 1);
 	std::cout << "Turning east\n";
-	move(state, 1, 0.5);
 	wait_for_crossing(state);
 
-	move(state, 0, 0);
 	std::cout << "Alignment reached.\n";
 
-	while (!(state.bump_left || state.bump_right))
+	open_claw(state);
+
+	move(state, 1, 0);
+	delay(2000);
+	/*while (!(state.bump_left || state.bump_right))
 	{
 		update_sensor_values(state);
 		follow_line(state);
-	}
+	}*/
 
 	move(state, 0, 0);
 
 	// Close claw, back away
-	// have_egg = true
-
 	close_claw(state);
 	delay(500);
 	move(state, -1, 0);
@@ -111,13 +111,20 @@ void egg_task(robot_state &state)
 	update_status_leds(state);
 
 	// if claw can't close, egg is fake. can skip to realignment step.
-	if (state.claw_closed)
+	if (true || state.claw_closed)
 	{	
 	// Split claw (dropping contents into bucket)
 	// Use LDR to identify contents.
 	// set have_chick or have_white accordingly
 		widen_claw(state);
 		delay(1000);
+		for (int i = 0; i < 3; ++i)
+		{
+			narrow_claw(state);
+			delay(250);
+			widen_claw(state);
+			delay(250);
+		}
 		read_ldr(state);
 		if (state.light_sensor > 0.2f)
 			state.have_white = true;
@@ -130,7 +137,7 @@ void egg_task(robot_state &state)
 	std::cout << "Egg picked up, realigning to track\n";
 	// realign to track
 	// (may possibly have to set current vertex to egg_n+1 due to turning during realignment)
-	move(state, 0, 1);
+	move(state, -1, 1);
 	wait_for_crossing(state);
 
 	//set_next_target();
@@ -139,6 +146,13 @@ void egg_task(robot_state &state)
 void egg_box_task(robot_state &state)
 {
 	// align to box  (90* turn_to_line, drive forward until whiskers detect box)
+
+	turn_to_line(state, 90);
+	while (!(state.bump_left || state.bump_right))
+	{
+		update_sensor_values(state);
+		follow_line(state);
+	}
 
 	// ensure ramp/flapper is extended
 	// unsplit claw

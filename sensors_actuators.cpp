@@ -60,14 +60,14 @@ void read_ldr(robot_state &state)
 	float v_lighton = state.link->request(ADC_LDR) / 256.f;
 	set_led(state, LED_LDR, false);
 	delay(100);
-	//float v_lightoff = state.link->request(ADC_LDR) / 256.f;
+	float v_lightoff = state.link->request(ADC_LDR) / 256.f;
 
 	// v = R / (R + R1)
 	// so  R/R1 = v/(1-v)
 	float r_lighton = R1 * v_lighton / (1 - v_lighton);
-	//float r_lightoff = R1 * v_lightoff / (1 - v_lightoff);
+	float r_lightoff = R1 * v_lightoff / (1 - v_lightoff);
 
-	state.light_sensor = 500 / r_lighton;// - 500 / r_lightoff;	// lux =~= 500/R
+	state.light_sensor = 500 / r_lighton - 500 / r_lightoff;	// lux =~= 500/R
 }
 
 // Actuator control code
