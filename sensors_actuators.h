@@ -37,7 +37,7 @@
 
 
 // LDR reading takes longer and is only needed at certain points, so is called separately.
-void init_sensors(robot_state &state);
+void init_sensors_actuators(robot_state &state);
 void update_sensor_values(robot_state &state);
 void read_ldr(robot_state &state);
 

@@ -52,11 +52,20 @@ void follow_line(robot_state &state)
 		}		
 		// Advance our state along the edge to next vertex on route
 		// And store the new direction for entering this vertex
-		edge *e = state.current_path[0];
-		state.current = e->other(state.current);
-		state.current_dirx = e->dirx(state.current);
-		state.current_diry = e->diry(state.current);
-		std::cout << "Arrived at junction (" << state.current->posx << ", " << state.current->posy << ")\n";
+		edge *last_edge;
+		do
+		{
+			last_edge = state.current_path[0];
+			state.current = last_edge->other(state.current);
+			state.current_dirx = last_edge->dirx(state.current);
+			state.current_diry = last_edge->diry(state.current);
+			std::cout << "Arrived at junction (" << state.current->posx << ", " << state.current->posy << ")\n";
+			if (state.current->ignore_junction)
+				std::cout << "(Ignoring this junction ^ )\n";
+			// Pop the edge we just traversed off the front of the path
+			// SHOULD NOT USE VECTOR, better a deque
+			state.current_path.erase(state.current_path.begin());
+		} while (state.current->ignore_junction);
 		// Stop if now at target
 		if (state.current == state.target)
 		{
@@ -65,12 +74,10 @@ void follow_line(robot_state &state)
 		}
 		// Find turning angle to next edge, turn onto it
 		turn_to_line(state, state.map->turning_angle(
+			last_edge,
 			state.current_path[0],
-			state.current_path[1],
 			state.current));
-		// Pop the edge we just traversed off the front of the path
-		// SHOULD NOT USE VECTOR, better a deque
-		state.current_path.erase(state.current_path.begin());
+
 	}
 	else if (state.line_state == LINE_NONE_DETECTED)
 	{
@@ -104,8 +111,8 @@ void follow_line_ignore_junctions(robot_state &state)
 	if (state.line_state >= -3 && state.line_state <= 3)
 	{
 		// we have a line state from -3 to 3, from completely left to completely right
-		state.integral += state.line_state * dt * 0.1f;
-		move(state, 1, -1.f * (state.line_state + state.integral)/3.0001f);	// full speed ahead!
+		state.integral += state.line_state * dt * 0.3f;
+		move(state, 1, -1.f * (state.line_state + state.integral)/3.f);	// full speed ahead!
 	}
 	else if (state.line_state == LINE_JUNCTION)
 	{

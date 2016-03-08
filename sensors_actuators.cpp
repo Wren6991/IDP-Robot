@@ -10,7 +10,7 @@
 #include "line_following.h"
 // Sensor control code
 
-void init_sensors(robot_state &state)
+void init_sensors_actuators(robot_state &state)
 {
 	// Inputs need to be written 1 to set high impedance
 	int line_bits = state.link->request(READ(LINE_SENS_PORT));
@@ -25,6 +25,9 @@ void init_sensors(robot_state &state)
 		SWITCH_BUMP_LEFT |
 		SWITCH_BUMP_RIGHT);
 	state.link->command(RAMP_TIME, 0);
+	narrow_claw(state);
+	close_claw(state);
+	set_led(state, LED_LDR, false);
 }
 
 void update_sensor_values(robot_state &state)
@@ -68,6 +71,7 @@ void read_ldr(robot_state &state)
 	float r_lightoff = R1 * v_lightoff / (1 - v_lightoff);
 
 	state.light_sensor = 500 / r_lighton - 500 / r_lightoff;	// lux =~= 500/R
+	std::cout << "LDR: " << state.light_sensor << "\n";
 }
 
 // Actuator control code

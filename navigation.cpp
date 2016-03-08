@@ -55,7 +55,7 @@ world_map::world_map()
 	vs.push_back(new vertex(600, 1200));
 	vs.push_back(new vertex(900, 1200));
 	vs.push_back(new vertex(1200, 1200));
-	vs.push_back(new vertex(1800, 1200));
+	vs.push_back(new vertex(1800, 1200, true));
 	vs.push_back(new vertex(900, 800));
 	vs.push_back(new vertex(1800, 800));
 	vs.push_back(new vertex(1800, 600));

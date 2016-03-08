@@ -96,19 +96,15 @@ void egg_task(robot_state &state)
 	open_claw(state);
 
 	state.integral = 0.f;
-	
-	int i = 300;
-	while (i --> 0)
+	debug_dump(state);
+
+	while (!(state.bump_left || state.bump_right))
 	{
 		update_sensor_values(state);
 		follow_line_ignore_junctions(state);
 	}
-	/*while (!(state.bump_left || state.bump_right))
-	{
-		update_sensor_values(state);
-		follow_line(state);
-	}*/
 
+	std::cout << " Bumped into wall:  " << (state.bump_left ? "l" : "-") << (state.bump_right ? "r" : "-") << "\n";
 	move(state, 0, 0);
 
 	// Close claw, back away
@@ -155,7 +151,7 @@ void egg_task(robot_state &state)
 	std::cout << "Egg picked up, realigning to track\n";
 	// realign to track
 	// (may possibly have to set current vertex to egg_n+1 due to turning during realignment)
-	move(state, -1, 1);
+	move(state, 0, 1);
 	wait_for_crossing(state);
 
 	//set_next_target();
@@ -163,33 +159,68 @@ void egg_task(robot_state &state)
 
 void egg_box_task(robot_state &state)
 {
-	// align to box  (90* turn_to_line, drive forward until whiskers detect box)
+	// align to box
 
-	turn_to_line(state, 90);
-	while (!(state.bump_left || state.bump_right))
-	{
-		update_sensor_values(state);
-		follow_line(state);
-	}
+	move(state, -1, 0);
+	delay(1300);
+	move(state, 0, -1);
+	delay(500);
+	move(state, 1, 0);
+	delay(500);
 
-	// ensure ramp/flapper is extended
-	// unsplit claw
-	// open claw
-	// have_egg = false
+	// flap the flapper
+	flap_flapper(state);
+	unflap_flapper(state);
 
 	// realign to track
-	// set_next_target();
+	move(state, -1, 1);
+	wait_for_crossing(state);
+	state.integral = 0.f;
+
+	while (state.line_state != LINE_JUNCTION)
+	{
+		follow_line_ignore_junctions(state);
+		update_sensor_values(state);
+	}
+	turn_to_line(state, 90.f);
+
+	state.have_white = false;
+	update_status_leds(state);
+	set_next_target(state);
+
+
 }
 
 void chick_box_task(robot_state &state)
 {
 	// align to box
 
+	move(state, -1, 0);
+	delay(1300);
+	move(state, 0, -1);
+	delay(600);
+	move(state, 1, 0);
+	delay(500);
+
 	// flap the flapper
+	flap_flapper(state);
+	unflap_flapper(state);
 
 	// realign to track
-	// have_chick = false
-	// set_next_target();
+	move(state, -1, 1);
+	wait_for_crossing(state);
+	state.integral = 0.f;
+
+	while (state.line_state != LINE_JUNCTION)
+	{
+		follow_line_ignore_junctions(state);
+		update_sensor_values(state);
+	}
+
+	state.have_white = false;
+	update_status_leds(state);
+	set_next_target(state);
+
 }
 
 void frying_pan_task(robot_state &state)

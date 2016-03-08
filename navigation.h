@@ -23,9 +23,10 @@ struct vertex {
 	// Pathfinding fields:
 	float g_score, f_score;	// g: cost of reaching node, f: heuristic total cost
 	edge *came_from;
+	bool ignore_junction; // If we will not detect this junction due to its geometry
 
 	void (*endpoint_task)(robot_state &state);
-	vertex(float posx_, float posy_) {posx = posx_; posy = posy_;}
+	vertex(float posx_, float posy_, bool ignore_junction_ = false) {posx = posx_; posy = posy_; ignore_junction = ignore_junction_;}
 };
 
 struct edge {

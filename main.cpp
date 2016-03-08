@@ -56,8 +56,8 @@ int main(int argc, char **argv)
 	robot_state state;
 	robot_link *link = state.link;
 
-	state.current = state.map->vs[VERT_EGG_2];
-	state.target = state.map->vs[VERT_FRYING_PAN];
+	state.current = state.map->vs[VERT_START];
+	state.target = state.map->vs[VERT_EGG_0];
 	state.current_path = state.map->find_path(state.current, state.target);
 
 	vertex *current = state.current;
@@ -79,13 +79,9 @@ int main(int argc, char **argv)
 
 	std::cout << "Connected\n";
 
-	init_sensors(state);
+	init_sensors_actuators(state);
 
-	move(state, 0, 0);
-
-	narrow_claw(state);
-	close_claw(state);
-
+	//move(state, 0, 0);
 
 	while (true)
 	{
@@ -94,7 +90,7 @@ int main(int argc, char **argv)
 		if (state.current == state.target)
 		{
 			state.eggs_processed = 0;
-			frying_pan_task(state);
+			egg_task(state);
 			break;
 		}
 	}
