@@ -19,38 +19,6 @@
 	#define ROBOT_NUM 50
 #endif
 
-void mech_demo(robot_state &state)
-{
-	close_claw(state);
-	delay(1000);
-	widen_claw(state);
-	delay(1000);
-
-	narrow_claw(state);
-	delay(250);
-	widen_claw(state);
-	delay(250);
-	narrow_claw(state);
-	delay(250);
-	widen_claw(state);
-	delay(250);
-	narrow_claw(state);
-	delay(250);
-	widen_claw(state);
-	delay(1000);
-
-
-	state.link->command(MOTOR_PADDLE_GO, 127);
-	delay(1000);
-	state.link->command(MOTOR_PADDLE_GO, 255);
-	delay(1000);
-	state.link->command(MOTOR_PADDLE_GO, 0);		
-	open_claw(state);
-	delay(500);
-	narrow_claw(state);
-	delay(3000);
-}
-
 int main(int argc, char **argv)
 {
 	robot_state state;
@@ -81,18 +49,16 @@ int main(int argc, char **argv)
 
 	init_sensors_actuators(state);
 
-	//move(state, 0, 0);
+	state.eggs_processed = 0;
+	//egg_task(state);
+	//return 0;
 
 	while (true)
 	{
 		update_sensor_values(state);
 		follow_line(state);
 		if (state.current == state.target)
-		{
-			state.eggs_processed = 0;
-			egg_task(state);
-			break;
-		}
+			state.current->endpoint_task(state);
 	}
 }
 

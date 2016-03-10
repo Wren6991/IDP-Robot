@@ -120,6 +120,7 @@ void follow_line_ignore_junctions(robot_state &state)
 	}
 	else
 	{
+		state.integral = 0.f;
 		move(state, 0, 0);
 	}
 }

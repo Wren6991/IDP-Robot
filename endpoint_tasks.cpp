@@ -56,15 +56,40 @@ void set_next_target(robot_state &state)
 			break;
 		}
 	}
+	state.current_path = state.map->find_path(state.current, state.target);
 }
 
-void wait_for_crossing(robot_state &state)
+void wait_for_crossing(robot_state &state, int tolerance = 2)
 {
-	while (state.line_state != LINE_NONE_DETECTED)
+	while (state.line_state != LINE_NONE_DETECTED) 
 		update_sensor_values(state);
-	while (state.line_state < -2 || state.line_state > 2)
+	while (state.line_state < -tolerance || state.line_state > tolerance)
 		update_sensor_values(state);
 }
+
+void advance_current_egg_position(robot_state &state)
+{
+	// Due to realignment we will now be one egg further up than the one that was collected:
+	switch(state.eggs_processed)
+	{
+	case 0:
+		state.current = state.map->vs[VERT_EGG_1];
+		break;
+	case 1:
+		state.current = state.map->vs[VERT_EGG_2];
+		break;
+	case 2:
+		state.current = state.map->vs[VERT_EGG_3];
+		break;
+	case 3:
+		state.current = state.map->vs[VERT_EGG_4];
+		break;
+	case 4:
+		state.current = state.map->vs[VERT_EGG_4];
+		break;
+	}
+}
+
 void egg_task(robot_state &state)
 {
 	// Align with podium
@@ -75,6 +100,8 @@ void egg_task(robot_state &state)
 		// (edge following has less slack than line following)
 		// Edge follow until one whisker hits the wall, then drive the opposite motor until both
 		// whiskers are on wall
+
+	std::cout << "entered egg task (" << state.eggs_processed << " eggs processed so far)\n";
 
 	if (state.eggs_processed >= 1 && state.eggs_processed <= 3)
 	{
@@ -89,6 +116,8 @@ void egg_task(robot_state &state)
 		move(state, 0.5, 1);
 		std::cout << "Turning east\n";
 		wait_for_crossing(state);
+		move(state, 0, -1);
+		delay(100);
 
 		std::cout << "Alignment reached.\n";
 	}
@@ -96,8 +125,6 @@ void egg_task(robot_state &state)
 	open_claw(state);
 
 	state.integral = 0.f;
-	debug_dump(state);
-
 	while (!(state.bump_left || state.bump_right))
 	{
 		update_sensor_values(state);
@@ -111,7 +138,9 @@ void egg_task(robot_state &state)
 	close_claw(state);
 	delay(500);
 	move(state, -1, 0);
-	delay(500);
+	while (state.line_state != LINE_JUNCTION)
+		update_sensor_values(state);
+	delay(600);
 	move(state, 0, 0);
 	state.have_egg = true;
 	update_status_leds(state);
@@ -127,15 +156,8 @@ void egg_task(robot_state &state)
 		for (int i = 0; i < 3; ++i)
 		{
 			narrow_claw(state);
-			delay(250);
+			delay(200);
 			widen_claw(state);
-			delay(350);
-		}
-		for (int i = 0; i < 3; ++i)
-		{
-			move(state, 0, 1);
-			delay(300);
-			move(state, 0, -1);
 			delay(300);
 		}
 		move(state, 0, 0);
@@ -144,21 +166,71 @@ void egg_task(robot_state &state)
 			state.have_white = true;
 		else
 			state.have_chick = true;
+		std::cout << (state.have_white ? "Egg white " : "Chick ") << "detected.\n";
 		update_status_leds(state);
-		narrow_claw(state);
+
 	}
 
 	std::cout << "Egg picked up, realigning to track\n";
 	// realign to track
 	// (may possibly have to set current vertex to egg_n+1 due to turning during realignment)
-	move(state, 0, 1);
+	move(state, 1, 1);
+	wait_for_crossing(state);
+	delay(100);
+	std::cout << "On line, straightening...\n";
+	move(state, 1, 0);
+	while (state.line_state != LINE_STRAIGHT)
+	{
+		update_sensor_values(state);
+	}
+
+	/*move(state, 1, 0.5);
+	delay(500);
+	
+	do
+	{
+		update_sensor_values(state);
+	} while (state.line_state < -1 || state.line_state > 1);
+		
+	move(state, 0, 0);
+	state.integral = 0.f;*/
+
+	/*float time = state.watch.read();
+
+	while (state.watch.read() < time + 3000.f)
+	{
+		update_sensor_values(state);
+		follow_edge(state, 3, false);
+	}*/
+
+	narrow_claw(state);
+	advance_current_egg_position(state);
+	state.map->vs[VERT_ABOVE_EGGS]->ignore_junction = true;
+	set_next_target(state);
+	std::cout << "Egg task complete\n";
+}
+
+// Subroutine to reacquire line after leaving it to deposit in a box
+void realign_from_box(robot_state &state)
+{
+	move(state, -1, 0.8);
 	wait_for_crossing(state);
 
-	//set_next_target();
+	while (state.line_state != LINE_STRAIGHT)
+		update_sensor_values(state);
+	state.integral = 0.f;
+
+	while (state.line_state != LINE_JUNCTION)
+	{
+		follow_line_ignore_junctions(state);
+		update_sensor_values(state);
+	}
+	turn_to_line(state, 0.f);
 }
 
 void egg_box_task(robot_state &state)
 {
+	std::cout << "entered egg box task\n";
 	// align to box
 
 	move(state, -1, 0);
@@ -168,37 +240,43 @@ void egg_box_task(robot_state &state)
 	move(state, 1, 0);
 	delay(500);
 
-	// flap the flapper
+	// eject the shells
+	open_claw(state);
 	flap_flapper(state);
 	unflap_flapper(state);
+	close_claw(state);
+
+	state.have_egg = false;
+	update_status_leds(state);
 
 	// realign to track
-	move(state, -1, 1);
+	
+	move(state, -1, 0);
+	delay(500);
+	move(state, 0, 1);
 	wait_for_crossing(state);
-	state.integral = 0.f;
+	move(state, 1, 0);
+	delay(1000);
+	move(state, 0, 1);
+	wait_for_crossing(state);
 
-	while (state.line_state != LINE_JUNCTION)
-	{
-		follow_line_ignore_junctions(state);
-		update_sensor_values(state);
-	}
-	turn_to_line(state, 90.f);
 
-	state.have_white = false;
-	update_status_leds(state);
+	state.eggs_processed++;
+	
+	state.map->vs[VERT_ABOVE_EGGS]->ignore_junction = false;
 	set_next_target(state);
-
-
+	std::cout << "egg box task complete\n";
 }
 
 void chick_box_task(robot_state &state)
 {
+	std::cout << "entered chick box task\n";
 	// align to box
 
 	move(state, -1, 0);
 	delay(1300);
 	move(state, 0, -1);
-	delay(600);
+	delay(650);
 	move(state, 1, 0);
 	delay(500);
 
@@ -207,24 +285,19 @@ void chick_box_task(robot_state &state)
 	unflap_flapper(state);
 
 	// realign to track
-	move(state, -1, 1);
-	wait_for_crossing(state);
-	state.integral = 0.f;
+	realign_from_box(state);
 
-	while (state.line_state != LINE_JUNCTION)
-	{
-		follow_line_ignore_junctions(state);
-		update_sensor_values(state);
-	}
-
-	state.have_white = false;
+	state.have_chick = false;
 	update_status_leds(state);
+
 	set_next_target(state);
+	std::cout << "chick box task complete\n";
 
 }
 
 void frying_pan_task(robot_state &state)
 {
+	std::cout << "entered frying pan task\n";
 	// align to box
 
 	move(state, -1, 0);
@@ -239,18 +312,12 @@ void frying_pan_task(robot_state &state)
 	unflap_flapper(state);
 
 	// realign to track
-	move(state, -1, 1);
-	wait_for_crossing(state);
-	state.integral = 0.f;
-
-	while (state.line_state != LINE_JUNCTION)
-	{
-		follow_line_ignore_junctions(state);
-		update_sensor_values(state);
-	}
+	realign_from_box(state);
 
 	state.have_white = false;
 	update_status_leds(state);
+
 	set_next_target(state);
+	std::cout << "frying pan task complete\n";
 }
 

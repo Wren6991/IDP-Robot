@@ -1,4 +1,5 @@
 #include "navigation.h"
+#include "endpoint_tasks.h"
 
 #include <algorithm>
 #include <cmath>
@@ -52,7 +53,7 @@ world_map::world_map()
 	vs.push_back(new vertex(900, 1800));
 	vs.push_back(new vertex(1200 + 600 * root2/2, 1200 + 600 * root2/2));
 	vs.push_back(new vertex(0, 1200));
-	vs.push_back(new vertex(600, 1200));
+	vs.push_back(new vertex(600, 1200, true));
 	vs.push_back(new vertex(900, 1200));
 	vs.push_back(new vertex(1200, 1200));
 	vs.push_back(new vertex(1800, 1200, true));
@@ -91,6 +92,16 @@ world_map::world_map()
 	es.push_back(new edge(vs[14], vs[15]));
 	es.push_back(new edge(vs[15], vs[16]));
 	es.push_back(new edge(vs[16], vs[17]));
+
+	vs[VERT_EGG_0]->endpoint_task = egg_task;
+	vs[VERT_EGG_1]->endpoint_task = egg_task;
+	vs[VERT_EGG_2]->endpoint_task = egg_task;
+	vs[VERT_EGG_3]->endpoint_task = egg_task;
+	vs[VERT_EGG_4]->endpoint_task = egg_task;
+	vs[VERT_FRYING_PAN]->endpoint_task = frying_pan_task;
+	vs[VERT_CHICK_BOX]->endpoint_task = chick_box_task;
+	vs[VERT_EGG_BOX]->endpoint_task = egg_box_task;
+	vs[VERT_START]->endpoint_task = start_box_task;
 }
 
 float heuristic_distance(vertex *a, vertex *b)
@@ -119,6 +130,7 @@ std::vector<edge*> world_map::reconstruct_path(vertex *start, vertex *end)
 		current = current->came_from->other(current);
 	}
 	std::reverse(path_edges.begin(), path_edges.end());
+
 	return path_edges;
 }
 
@@ -148,33 +160,32 @@ std::vector<edge*> world_map::find_path(vertex *start, vertex *end)
 		}
 		open_set.erase(current);
 		closed_set.insert(current);
-		std::cout << current->edges.size() << " neighbours.\n";
+//		std::cout << current->edges.size() << " neighbours.\n";
 		for (size_t i = 0; i < current->edges.size(); ++i)
 		{
 			edge *e = current->edges[i];
 			vertex *neighbour = e->other(current);
-			std::cout << "Considering vertex at (" << neighbour->posx << ", " << neighbour->posy << ")\n";
+			//std::cout << "Considering vertex at (" << neighbour->posx << ", " << neighbour->posy << ")\n";
 			if (closed_set.find(neighbour) != closed_set.end())
 			{
 				// if we've already fully determined this node, skip
-				std::cout << "Already closed set.\n";
+				//std::cout << "Already closed set.\n";
 				continue;
 			}
 			float tentative_g_score = current->g_score + e->length;
-			std::cout << "l: " << e->length << "\n";
 			if (open_set.find(neighbour) == open_set.end())
 			{
-				std::cout << "Adding to open set\n";
+				//std::cout << "Adding to open set\n";
 				open_set.insert(neighbour);
 			}
 			else if (tentative_g_score >= neighbour->g_score)
 			{
-				std::cout << "Already in open set, score not improved upon\n";
+				//std::cout << "Already in open set, score not improved upon\n";
 				// we have already considered this node and found a path as good
 				// or better
 				continue;
 			}
-			std::cout << "Best score so far for this node.\n";
+			//std::cout << "Best score so far for this node.\n";
 			// Otherwise this is the best path found so far for this node
 			neighbour->came_from = e;
 			neighbour->g_score = tentative_g_score;

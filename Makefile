@@ -4,7 +4,7 @@ LDFLAGS = -L/export/teach/1BRobot
 LIBS = -lrobot
 
 ARM_CC = arm-unknown-linux-gnueabi-g++
-ARM_CCFLAGS = -I/usr/arm-unknown-linux-gnueabi/include -I/export/teach/1BRobot
+ARM_CCFLAGS = -Wall -I/usr/arm-unknown-linux-gnueabi/include -I/export/teach/1BRobot
 ARM_LDFLAGS = -L/usr/arm-unknown-linux-gnueabi/lib
 LIBS_ARM = -lrobot
 

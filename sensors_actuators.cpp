@@ -28,6 +28,7 @@ void init_sensors_actuators(robot_state &state)
 	narrow_claw(state);
 	close_claw(state);
 	set_led(state, LED_LDR, false);
+	move(state, 0, 0);
 }
 
 void update_sensor_values(robot_state &state)
@@ -138,14 +139,14 @@ void move(robot_state &state, float speed, float turning_ratio)
 
 void flap_flapper(robot_state &state)
 {
-	state.link->command(MOTOR_PADDLE_GO, 127);
+//	state.link->command(MOTOR_PADDLE_GO, 127);
 	delay(1000);
 	state.link->command(MOTOR_PADDLE_GO, 0);
 }
 
 void unflap_flapper(robot_state &state)
 {
-	state.link->command(MOTOR_PADDLE_GO, 255);
+//	state.link->command(MOTOR_PADDLE_GO, 255);
 	delay(1000);
 	state.link->command(MOTOR_PADDLE_GO, 0);
 }

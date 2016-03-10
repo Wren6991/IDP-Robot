@@ -10,6 +10,8 @@
 #define VERT_EGG_3 10
 #define VERT_EGG_4 9
 #define VERT_EGG_BOX 0
+#define VERT_ABOVE_EGGS 7
+#define VERT_45_NEAR_EGG_BOX 4
 #define VERT_CHICK_BOX 1
 #define VERT_FRYING_PAN 2
 #define VERT_START 14
