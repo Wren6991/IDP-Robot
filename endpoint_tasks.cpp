@@ -69,17 +69,17 @@ void wait_for_crossing(robot_state &state, int tolerance = 2)
 
 void advance_current_egg_position(robot_state &state)
 {
-	// Due to realignment we will now be one egg further up than the one that was collected:
+	// Due to realignment we will now be further up than the egg that was collected:
 	switch(state.eggs_processed)
 	{
 	case 0:
-		state.current = state.map->vs[VERT_EGG_1];
-		break;
-	case 1:
 		state.current = state.map->vs[VERT_EGG_2];
 		break;
-	case 2:
+	case 1:
 		state.current = state.map->vs[VERT_EGG_3];
+		break;
+	case 2:
+		state.current = state.map->vs[VERT_EGG_4];
 		break;
 	case 3:
 		state.current = state.map->vs[VERT_EGG_4];
@@ -146,7 +146,7 @@ void egg_task(robot_state &state)
 	update_status_leds(state);
 
 	// if claw can't close, egg is fake. can skip to realignment step.
-	if (true || state.claw_closed)
+	if (state.claw_closed)
 	{	
 	// Split claw (dropping contents into bucket)
 	// Use LDR to identify contents.
@@ -257,8 +257,10 @@ void egg_box_task(robot_state &state)
 	wait_for_crossing(state);
 	move(state, 1, 0);
 	delay(1000);
-	move(state, 0, 1);
+	move(state, 1, 1);
 	wait_for_crossing(state);
+	move(state, 0, -1);
+	delay(100);
 
 
 	state.eggs_processed++;

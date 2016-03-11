@@ -50,8 +50,6 @@ int main(int argc, char **argv)
 	init_sensors_actuators(state);
 
 	state.eggs_processed = 0;
-	//egg_task(state);
-	//return 0;
 
 	while (true)
 	{

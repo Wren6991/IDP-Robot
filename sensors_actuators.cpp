@@ -139,15 +139,15 @@ void move(robot_state &state, float speed, float turning_ratio)
 
 void flap_flapper(robot_state &state)
 {
-//	state.link->command(MOTOR_PADDLE_GO, 127);
-	delay(1000);
+	state.link->command(MOTOR_PADDLE_GO, 127);
+	delay(1300);
 	state.link->command(MOTOR_PADDLE_GO, 0);
 }
 
 void unflap_flapper(robot_state &state)
 {
-//	state.link->command(MOTOR_PADDLE_GO, 255);
-	delay(1000);
+	state.link->command(MOTOR_PADDLE_GO, 255);
+	delay(1300);
 	state.link->command(MOTOR_PADDLE_GO, 0);
 }
 
